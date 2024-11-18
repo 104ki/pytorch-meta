@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 
 def get_asset_path(*args):
@@ -30,13 +30,26 @@ def get_asset(*args, dtype=None):
 # is currently no protection against exceeded quotas. If you get an integrity error in Torchmeta
 # (e.g. "MiniImagenet integrity check failed" for MiniImagenet), then this means that the quota
 # has exceeded for this dataset. See also: https://github.com/tristandeleu/pytorch-meta/issues/54
-# 
+#
 # See also: https://github.com/pytorch/vision/issues/2992
-# 
+#
 # The following functions are taken from
 # https://github.com/pytorch/vision/blob/cd0268cd408d19d91f870e36fdffd031085abe13/torchvision/datasets/utils.py
 
-from torchvision.datasets.utils import _get_confirm_token, _save_response_content
+
+try:
+    from torchvision.datasets.utils import (
+        _get_confirm_token,
+        _save_response_content,
+        check_integrity,
+    )
+    use_torchvision = False
+except ImportError:
+    from torchvision.datasets.utils import (
+        download_file_from_google_drive as torchvision_download_file_from_google_drive,
+    )
+    use_torchvision = True
+
 
 def _quota_exceeded(response: "requests.models.Response"):
     return False
@@ -53,6 +66,9 @@ def download_file_from_google_drive(file_id, root, filename=None, md5=None):
         filename (str, optional): Name to save the file under. If None, use the id of the file.
         md5 (str, optional): MD5 checksum of the download. If None, do not check
     """
+    if not use_torchvision:
+        return torchvision_download_file_from_google_drive(file_id, root, filename, md5)
+
     # Based on https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url
     import requests
     url = "https://docs.google.com/uc?export=download"

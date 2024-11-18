@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "pytorch-meta"
+version = "1.9.0"
+description = "Dataloaders for meta-learning in Pytorch"
+authors = ["Tristan Deleu <tristan.deleu@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+keywords = ["meta-learning", "pytorch", "few-shot", "few-shot learning"]
+homepage = "https://github.com/tristandeleu/pytorch-meta"
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    'Intended Audience :: Science/Research',
+    'Programming Language :: Python :: 3.9',
+    'License :: OSI Approved :: MIT License',
+]
+packages = [{ include = "torchmeta" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+torch = { version = ">=1.13.1,<2.0.0", source = "pytorch" }
+torchvision = { version = ">=0.5.0,<=0.14.1", source = "pytorch" }
+h5py = "^3.12.1"
+tqdm = ">=4.0.0"
+ordered-set = "^4.1.0"
+numpy = "<2.0.0"
+
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
