@@ -9,6 +9,7 @@
             "version": "3.9"
         }
     },
+    "onCreateCommand": "rm -rf /workspaces/.codespaces/shared/editors/jetbrains",
     "customizations": {
         "vscode": {
             "extensions": [
