@@ -1,12 +1,13 @@
+import json
 import os
 import pickle
-from PIL import Image
-import h5py
-import json
 
-from torchmeta.utils.data import Dataset, ClassDataset, CombinationMetaDataset
+import h5py
+from PIL import Image
+
 # QKFIX: See torchmeta.datasets.utils for more informations
 from torchmeta.datasets.utils import download_file_from_google_drive
+from torchmeta.utils.data import ClassDataset, CombinationMetaDataset, Dataset
 
 
 class MiniImagenet(CombinationMetaDataset):
@@ -80,16 +81,17 @@ class MiniImagenet(CombinationMetaDataset):
     .. [2] Ravi, S. and Larochelle, H. (2016). Optimization as a Model for 
            Few-Shot Learning. (https://openreview.net/forum?id=rJY0-Kcll)
     """
+
     def __init__(self, root, num_classes_per_task=None, meta_train=False,
                  meta_val=False, meta_test=False, meta_split=None,
                  transform=None, target_transform=None, dataset_transform=None,
-                 class_augmentations=None, download=False):
+                 class_augmentations=None, download=False, tar_gz_path=None):
         dataset = MiniImagenetClassDataset(root, meta_train=meta_train,
-            meta_val=meta_val, meta_test=meta_test, meta_split=meta_split,
-            transform=transform, class_augmentations=class_augmentations,
-            download=download)
+                                           meta_val=meta_val, meta_test=meta_test, meta_split=meta_split,
+                                           transform=transform, class_augmentations=class_augmentations,
+                                           download=download, tar_gz_path=tar_gz_path)
         super(MiniImagenet, self).__init__(dataset, num_classes_per_task,
-            target_transform=target_transform, dataset_transform=dataset_transform)
+                                           target_transform=target_transform, dataset_transform=dataset_transform)
 
 
 class MiniImagenetClassDataset(ClassDataset):
@@ -105,23 +107,25 @@ class MiniImagenetClassDataset(ClassDataset):
 
     def __init__(self, root, meta_train=False, meta_val=False, meta_test=False,
                  meta_split=None, transform=None, class_augmentations=None,
-                 download=False):
+                 download=False, tar_gz_path=None):
         super(MiniImagenetClassDataset, self).__init__(meta_train=meta_train,
-            meta_val=meta_val, meta_test=meta_test, meta_split=meta_split,
-            class_augmentations=class_augmentations)
-        
+                                                       meta_val=meta_val, meta_test=meta_test, meta_split=meta_split,
+                                                       class_augmentations=class_augmentations)
+
         self.root = os.path.join(os.path.expanduser(root), self.folder)
         self.transform = transform
 
         self.split_filename = os.path.join(self.root,
-            self.filename.format(self.meta_split))
+                                           self.filename.format(self.meta_split))
         self.split_filename_labels = os.path.join(self.root,
-            self.filename_labels.format(self.meta_split))
+                                                  self.filename_labels.format(self.meta_split))
 
         self._data = None
         self._labels = None
 
-        if download:
+        if tar_gz_path:
+            self.download(tar_gz_path)
+        elif download:
             self.download()
 
         if not self._check_integrity():
@@ -135,7 +139,7 @@ class MiniImagenetClassDataset(ClassDataset):
         target_transform = self.get_target_transform(index)
 
         return MiniImagenetDataset(index, data, class_name,
-            transform=transform, target_transform=target_transform)
+                                   transform=transform, target_transform=target_transform)
 
     @property
     def num_classes(self):
@@ -157,7 +161,7 @@ class MiniImagenetClassDataset(ClassDataset):
 
     def _check_integrity(self):
         return (os.path.isfile(self.split_filename)
-            and os.path.isfile(self.split_filename_labels))
+                and os.path.isfile(self.split_filename_labels))
 
     def close(self):
         if self._data_file is not None:
@@ -165,16 +169,18 @@ class MiniImagenetClassDataset(ClassDataset):
             self._data_file = None
             self._data = None
 
-    def download(self):
+    def download(self, filename=None):
         import tarfile
 
         if self._check_integrity():
             return
 
-        download_file_from_google_drive(self.gdrive_id, self.root,
-            self.gz_filename, md5=self.gz_md5)
+        if filename is None:
+            download_file_from_google_drive(self.gdrive_id, self.root,
+                                            self.gz_filename, md5=self.gz_md5)
 
-        filename = os.path.join(self.root, self.gz_filename)
+            filename = os.path.join(self.root, self.gz_filename)
+
         with tarfile.open(filename, 'r') as f:
             f.extractall(self.root)
 
@@ -183,7 +189,8 @@ class MiniImagenetClassDataset(ClassDataset):
             if os.path.isfile(filename):
                 continue
 
-            pkl_filename = os.path.join(self.root, self.pkl_filename.format(split))
+            pkl_filename = os.path.join(
+                self.root, self.pkl_filename.format(split))
             if not os.path.isfile(pkl_filename):
                 raise IOError()
             with open(pkl_filename, 'rb') as f:
@@ -195,7 +202,8 @@ class MiniImagenetClassDataset(ClassDataset):
                 for name, indices in classes.items():
                     group.create_dataset(name, data=images[indices])
 
-            labels_filename = os.path.join(self.root, self.filename_labels.format(split))
+            labels_filename = os.path.join(
+                self.root, self.filename_labels.format(split))
             with open(labels_filename, 'w') as f:
                 labels = sorted(list(classes.keys()))
                 json.dump(labels, f)

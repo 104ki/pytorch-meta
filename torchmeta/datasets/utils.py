@@ -66,7 +66,7 @@ def download_file_from_google_drive(file_id, root, filename=None, md5=None):
         filename (str, optional): Name to save the file under. If None, use the id of the file.
         md5 (str, optional): MD5 checksum of the download. If None, do not check
     """
-    if not use_torchvision:
+    if use_torchvision:
         return torchvision_download_file_from_google_drive(file_id, root, filename, md5)
 
     # Based on https://stackoverflow.com/questions/38511444/python-download-files-from-google-drive-using-url
