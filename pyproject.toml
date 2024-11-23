@@ -17,7 +17,7 @@ classifiers = [
 packages = [{ include = "torchmeta" }]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.10"
+python = ">=3.9,<3.11"
 torch = { version = ">=1.13.1,<2.0.0", source = "pytorch" }
 torchvision = { version = ">=0.5.0,<=0.14.1", source = "pytorch" }
 h5py = "^3.12.1"
