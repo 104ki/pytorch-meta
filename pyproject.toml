@@ -28,7 +28,7 @@ numpy = "<2.0.0"
 
 [[tool.poetry.source]]
 name = "pytorch"
-url = "https://download.pytorch.org/whl/cpu"
+url = "https://download.pytorch.org/whl/cu117"
 priority = "explicit"
 
 [build-system]
